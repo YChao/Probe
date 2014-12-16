@@ -1,42 +1,22 @@
-c function event1222() {
-        $this->do_cache();
-        $this->load->helper('tuan_helper');
-
-        load_lib('cache_common:memcached_library');
-        $region = 'today_tuan';
-        $this->forward_to("event/e1222");
-
-        
-
-        $pre_time = strtotime('2014-12-24 00:00:00');
-        $pre_end_time = $pre_time + (2 * 86400);
-        $future_time = strtotime('2033-8-9 0:0:0');
-        $h = date('H', $_SERVER['REQUEST_TIME']);
-
-        $date = date("Ymd", $_SERVER['REQUEST_TIME']);
-
-        // $uid = is_login() ? current_uid() : 0; 待定
-        
-    }
-
-    /**
+     /**
      * [get_pre_items 获取预热活动的商品]
-     * @param  [type] $activity_id  [description]
-     * @param  [type] $brand_limits [description]
-     * @param  [type] $tuan_limits  [description]
-     * @param  [type] $you_limits   [description]
-     * @param  [type] $start_time   [description]
-     * @param  [type] $end_time     [description]
-     * @return [type]               [description]
+     * @param  [type] $activity_id  [专场活动idid]
+     * @param  [type] $brand_limits [品牌特卖抓取的个数]
+     * @param  [type] $start_time   [抓取商品的开始时间]
+     * @param  [type] $end_time     [抓取商品的结束时间]
+     * @return [object]             [最终的商品数据]
      */
-    private function get_pre_items($activity_id, $brand_limits, $tuan_limits, $you_limits, $start_time, $end_time) {
+    private function get_pre_items($activity_id, $brand_limits, $start_time, $end_time) {
+        load_lib('cache_common:memcached_library');
         load_lib('search_common:CoreSeekClient');
+
+        $region = 'today_tuan';
         $client = $this->coreSeekClient;
         $client->SetMatchMode(SPH_MATCH_FULLSCAN);
         $query = NULL;
         $client->ResetFilters();
         $client->setFilter('status', array(1));
-        $client->setFilter('activity_id', array(99, 106, 108, 109));
+        $client->setFilter('activity_id', array($activity_id));
         $client->SetSortMode(SPH_SORT_EXTENDED, 'start_time ASC');
         $client->SetLimits(0, 10);
         $results = $client->Query($query, 'tuan_main');
@@ -45,7 +25,7 @@ c function event1222() {
         $miaoshai_items = array_slice($miaoshai_items, 0, 8);
         $this->context->put('miaoshai_items', $miaoshai_items);
 
-
+        $h = date('H', $_SERVER['REQUEST_TIME']);
         $beginning = $h * 8;
         $key = 'cxk_cache';
         $cxk_cache = $this->memcached_library->get($region, $key);
